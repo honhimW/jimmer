@@ -308,10 +308,11 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
             if (colDef.jdbcType() != Types.OTHER) {
                 jdbcType = colDef.jdbcType();
             }
-            columnType = dialect.columnType(jdbcType, colDef.length(), colDef.precision(), colDef.scale());
             String sqlType = colDef.sqlType();
             if (StringUtils.isNotBlank(sqlType)) {
                 columnType = DDLUtils.replace(sqlType, colDef.length(), colDef.precision(), colDef.scale());
+            } else {
+                columnType = dialect.columnType(jdbcType, colDef.length(), colDef.precision(), colDef.scale());
             }
         } else {
             columnType = dialect.columnType(jdbcType, null, null, null);
