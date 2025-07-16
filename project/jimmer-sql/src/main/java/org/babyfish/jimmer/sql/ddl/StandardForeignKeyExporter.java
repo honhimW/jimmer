@@ -29,8 +29,8 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
                 String databaseProductVersion = metaData.getDatabaseProductVersion();
                 return new DatabaseVersion(databaseMajorVersion, databaseMinorVersion, databaseProductVersion);
             } catch (Exception e) {
-                DDLUtils.DDL_LOGGER.warn("cannot get database version, using latest as default", e);
-                return new DatabaseVersion(Integer.MAX_VALUE, Integer.MAX_VALUE, "unknown");
+                // cannot get database version, using latest as default
+                return DatabaseVersion.LATEST;
             }
         });
         this.dialect = DDLDialect.of(client.getDialect(), databaseVersion);

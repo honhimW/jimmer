@@ -15,8 +15,6 @@ import org.babyfish.jimmer.sql.meta.SingleColumn;
 import org.babyfish.jimmer.sql.meta.Storage;
 import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.babyfish.jimmer.sql.meta.impl.Storages;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.util.LinkedHashMap;
@@ -29,8 +27,6 @@ import static java.sql.Types.*;
  */
 
 public class DDLUtils {
-
-    public static final Logger DDL_LOGGER = LoggerFactory.getLogger("jimmer.ddl.sql");
 
     public static String replace(String type, Long length, Integer precision, Integer scale) {
         if (scale != null) {

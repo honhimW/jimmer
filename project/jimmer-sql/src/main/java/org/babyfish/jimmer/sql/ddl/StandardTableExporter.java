@@ -17,7 +17,6 @@ import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.babyfish.jimmer.sql.meta.impl.Storages;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
-import java.lang.reflect.Field;
 import java.sql.DatabaseMetaData;
 import java.sql.Types;
 import java.util.*;
@@ -33,8 +32,6 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
 
     protected final DDLDialect dialect;
 
-    private EnumType.Strategy defaultEnumStrategy;
-
     public StandardTableExporter(JSqlClientImplementor client) {
         this.client = client;
         DatabaseVersion databaseVersion = client.getConnectionManager().execute(connection -> {
@@ -45,8 +42,8 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
                 String databaseProductVersion = metaData.getDatabaseProductVersion();
                 return new DatabaseVersion(databaseMajorVersion, databaseMinorVersion, databaseProductVersion);
             } catch (Exception e) {
-                DDLUtils.DDL_LOGGER.warn("cannot get database version, using latest as default", e);
-                return new DatabaseVersion(Integer.MAX_VALUE, Integer.MAX_VALUE, "unknown");
+                // cannot get database version, using latest as default
+                return DatabaseVersion.LATEST;
             }
         });
         this.dialect = DDLDialect.of(client.getDialect(), databaseVersion);
@@ -182,17 +179,10 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
     }
 
     private void appendTableType(BufferContext bufferContext) {
-        bufferContext.getTableDef().ifPresent(tableDef -> {
-            String tableType = tableDef.tableType();
-            if (StringUtils.isNotBlank(tableType)) {
-                bufferContext.buf.append(' ').append(tableType);
-            }
-            String tableTypeString = dialect.getTableTypeString();
-            if (StringUtils.isNotBlank(tableTypeString)) {
-                bufferContext.buf.append(' ').append(tableTypeString);
-            }
-        });
-
+        String tableType = bufferContext.getTableDef().map(TableDef::tableType).orElse(dialect.getTableTypeString());
+        if (StringUtils.isNotBlank(tableType)) {
+            bufferContext.buf.append(' ').append(tableType);
+        }
     }
 
     private void appendTableCheck(BufferContext bufferContext) {
@@ -478,23 +468,11 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
     }
 
     private EnumType.Strategy resolveEnumStrategy(ImmutableProp prop) {
-        EnumType.Strategy strategy = EnumType.Strategy.NAME;
+        EnumType.Strategy strategy = client.getMetadataStrategy().getScalarTypeStrategy().getDefaultEnumStrategy();
         if (prop.getReturnClass().isAnnotationPresent(EnumType.class)) {
             EnumType annotation = prop.getReturnClass().getAnnotation(EnumType.class);
             assert annotation != null;
             strategy = annotation.value();
-        } else {
-            try {
-                if (this.defaultEnumStrategy == null) {
-                    Class<?> scalarProviderManager = Class.forName("org.babyfish.jimmer.sql.ScalarProviderManager");
-                    Field defaultEnumStrategy = scalarProviderManager.getDeclaredField("defaultEnumStrategy");
-                    defaultEnumStrategy.setAccessible(true);
-                    this.defaultEnumStrategy = (EnumType.Strategy) defaultEnumStrategy.get(client.getMetadataStrategy().getScalarTypeStrategy());
-                }
-                strategy = this.defaultEnumStrategy;
-            } catch (Exception e) {
-                DDLUtils.DDL_LOGGER.warn("cannot get default-enum-strategy: {}", e.getMessage());
-            }
         }
         return strategy;
     }

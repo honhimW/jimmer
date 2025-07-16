@@ -62,8 +62,8 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
                     String databaseProductVersion = metaData.getDatabaseProductVersion();
                     return new DatabaseVersion(databaseMajorVersion, databaseMinorVersion, databaseProductVersion);
                 } catch (Exception e) {
-                    log.warn("cannot get database version, using latest as default", e);
-                    return new DatabaseVersion(Integer.MAX_VALUE, Integer.MAX_VALUE, "unknown");
+                    // cannot get database version, using latest as default
+                    return DatabaseVersion.LATEST;
                 }
             });
         }
@@ -289,6 +289,12 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
     }
 
     private void applyCreateForeignKeys(Collection<ImmutableType> exportable, List<String> allSqlCreateStrings) {
+        if (!client.getDialect().isForeignKeySupported()) {
+            if (log.isDebugEnabled()) {
+                log.debug("3. `{}` does not supports foreign key.", client.getDialect().getClass().getSimpleName());
+            }
+            return;
+        }
         if (log.isDebugEnabled()) {
             log.debug("3. start create foreign keys.");
         }
@@ -307,6 +313,12 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
     }
 
     private void applyDropForeignKeys(Collection<ImmutableType> exportable, List<String> allSqlCreateStrings) {
+        if (!client.getDialect().isForeignKeySupported()) {
+            if (log.isDebugEnabled()) {
+                log.debug("1. `{}` does not supports foreign key.", client.getDialect().getClass().getSimpleName());
+            }
+            return;
+        }
         if (log.isDebugEnabled()) {
             log.debug("1. start drop foreign keys.");
         }
