@@ -179,7 +179,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
     }
 
     private void appendTableType(BufferContext bufferContext) {
-        String tableType = bufferContext.getTableDef().map(TableDef::tableType).orElse(dialect.getTableTypeString());
+        String tableType = bufferContext.getTableDef().map(TableDef::tableType).filter(s -> !s.isEmpty()).orElse(dialect.getTableTypeString());
         if (StringUtils.isNotBlank(tableType)) {
             bufferContext.buf.append(' ').append(tableType);
         }
