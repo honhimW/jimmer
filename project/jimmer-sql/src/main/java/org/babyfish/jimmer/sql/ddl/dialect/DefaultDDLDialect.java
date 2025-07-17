@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.Instant;
-import java.util.UUID;
 
 import static java.sql.Types.*;
 
@@ -140,9 +139,6 @@ public abstract class DefaultDDLDialect implements Dialect, DDLDialect {
                 case ORDINAL:
                     return Types.SMALLINT;
             }
-        }
-        if (sqlType == UUID.class) {
-            return Types.VARCHAR;
         }
         return resolveJdbcType(sqlType);
     }

@@ -282,7 +282,6 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
     private void appendColumnDefinition(BufferContext bufferContext, ImmutableProp prop, boolean isId) {
         bufferContext.buf.append(dialect.quote(getName(prop)));
         ColumnDef colDef = prop.getAnnotation(ColumnDef.class);
-        String columnType;
         EnumType.Strategy strategy = resolveEnumStrategy(prop);
 
         boolean nullable = prop.isNullable();
@@ -291,7 +290,13 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
             prop = prop.getTargetType().getIdProp();
         }
 
+        String sqlType = dialect.resolveSqlType(prop.getReturnClass(), strategy);
+        String columnType = dialect.resolveSqlType(prop.getReturnClass(), strategy);
         int jdbcType = dialect.resolveJdbcType(prop.getReturnClass(), strategy);
+        long l = dialect.getDefaultLength(jdbcType);
+        Integer p = DDLUtils.resolveDefaultPrecision(jdbcType, dialect);
+        int s = dialect.getDefaultScale(jdbcType);
+
         if (colDef != null) {
             if (StringUtils.isNotBlank(colDef.definition())) {
                 bufferContext.buf.append(' ').append(colDef.definition());
@@ -308,15 +313,20 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
             if (colDef.jdbcType() != Types.OTHER) {
                 jdbcType = colDef.jdbcType();
             }
-            String sqlType = colDef.sqlType();
-            if (StringUtils.isNotBlank(sqlType)) {
-                columnType = DDLUtils.replace(sqlType, colDef.length(), colDef.precision(), colDef.scale());
-            } else {
-                columnType = dialect.columnType(jdbcType, colDef.length(), colDef.precision(), colDef.scale());
+            if (StringUtils.isNotBlank(colDef.sqlType())) {
+                sqlType = colDef.sqlType();
             }
-        } else {
-            columnType = dialect.columnType(jdbcType, null, null, null);
+            l = colDef.length() > 0 ? colDef.length() : dialect.getDefaultLength(jdbcType);
+            p = colDef.precision() > 0 ? Integer.valueOf(colDef.precision()) : DDLUtils.resolveDefaultPrecision(jdbcType, dialect);
+            s = colDef.scale() > 0 ? colDef.scale() : dialect.getDefaultScale(jdbcType);
         }
+
+        if (StringUtils.isNotBlank(sqlType)) {
+            columnType = DDLUtils.replace(sqlType, l, p, s);
+        } else {
+            columnType = dialect.columnType(jdbcType, l, p, s);
+        }
+
         if (isId) {
             if (dialect.hasDataTypeInIdentityColumn()) {
                 bufferContext.buf.append(' ').append(columnType);

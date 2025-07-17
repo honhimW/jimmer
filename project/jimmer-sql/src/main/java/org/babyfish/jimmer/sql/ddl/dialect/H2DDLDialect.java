@@ -1,7 +1,10 @@
 package org.babyfish.jimmer.sql.ddl.dialect;
 
+import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.ddl.DatabaseVersion;
 import org.babyfish.jimmer.sql.dialect.H2Dialect;
+
+import java.util.UUID;
 
 import static java.sql.Types.*;
 
@@ -37,6 +40,14 @@ public class H2DDLDialect extends DefaultDDLDialect {
             default:
                 return super.columnType(jdbcType, length, precision, scale);
         }
+    }
+
+    @Override
+    public String resolveSqlType(Class<?> type, EnumType.Strategy strategy) {
+        if (type == UUID.class) {
+            return "uuid";
+        }
+        return super.resolveSqlType(type, strategy);
     }
 
     @Override

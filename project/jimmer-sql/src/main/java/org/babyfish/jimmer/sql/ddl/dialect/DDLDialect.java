@@ -5,7 +5,9 @@ import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.ddl.DatabaseVersion;
 import org.babyfish.jimmer.sql.dialect.*;
 
+import java.sql.Types;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author honhimW
@@ -178,6 +180,22 @@ public interface DDLDialect extends Dialect {
     }
 
     int resolveJdbcType(Class<?> type, EnumType.Strategy strategy);
+
+    /**
+     * if not blank using in column definition, otherwise using{@link #resolveJdbcType(Class, EnumType.Strategy)}
+     *
+     * useful when JavaType is not in {@link java.sql.Types} such as {@link java.util.UUID}
+     *
+     * @param type     java type
+     * @param strategy enum strategy, string(varchar) or ordinal(number)
+     * @return sql type if not blank, not null
+     */
+    default String resolveSqlType(Class<?> type, EnumType.Strategy strategy) {
+        if (type == UUID.class) {
+            return columnType(Types.VARCHAR, 36L, null, null);
+        }
+        return "";
+    }
 
     default String getCreateIndexString(boolean unique) {
         return unique ? "create unique index" : "create index";

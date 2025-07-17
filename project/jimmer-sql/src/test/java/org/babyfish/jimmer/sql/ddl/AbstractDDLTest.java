@@ -1,19 +1,19 @@
 package org.babyfish.jimmer.sql.ddl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TargetLevel;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.common.AbstractTest;
+import org.babyfish.jimmer.sql.ddl.annotations.ColumnDef;
 import org.babyfish.jimmer.sql.ddl.dialect.DDLDialect;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.OracleDialect;
 import org.babyfish.jimmer.sql.dialect.SqlServerDialect;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
-import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Assertions;
 
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -59,12 +59,25 @@ public abstract class AbstractDDLTest extends AbstractTest {
                 prop = prop.getTargetType().getIdProp();
             }
             int jdbcType = ddlDialect.resolveJdbcType(prop.getReturnClass(), jSqlClientImplementor.getMetadataStrategy().getScalarTypeStrategy().getDefaultEnumStrategy());
+            ColumnDef annotation = prop.getAnnotation(ColumnDef.class);
+            if (annotation != null && annotation.jdbcType() != Types.OTHER) {
+                jdbcType = annotation.jdbcType();
+            }
 
             Object dataType = value.get("DATA_TYPE");
             Assertions.assertNotNull(dataType);
 
             jdbcType = adjustJdbcType(jdbcType);
-            Assertions.assertEquals(jdbcType, dataType, String.format("prop: %s, jdbc: %d, dataType: %s", prop.getName(), jdbcType, dataType));
+
+            if (jdbcType == Types.OTHER) {
+                String sqlType = ddlDialect.resolveSqlType(prop.getReturnClass(), jSqlClientImplementor.getMetadataStrategy().getScalarTypeStrategy().getDefaultEnumStrategy());
+                if (annotation != null && !annotation.sqlType().isEmpty()) {
+                    sqlType = annotation.sqlType();
+                }
+                Assertions.assertFalse(sqlType.isEmpty(), "prop should has a sqlType");
+            } else {
+                Assertions.assertEquals(jdbcType, dataType, String.format("prop: %s, jdbc: %d, dataType: %s", prop.getName(), jdbcType, dataType));
+            }
         }
     }
 
