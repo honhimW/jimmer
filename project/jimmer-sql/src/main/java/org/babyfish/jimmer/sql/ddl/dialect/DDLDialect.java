@@ -256,4 +256,15 @@ public interface DDLDialect extends Dialect {
         return true;
     }
 
+    default boolean hasAlterTable() {
+        return true;
+    }
+
+    /**
+     * SQLite only?
+     */
+    default boolean supportsCreateTableWithForeignKey() {
+        return false;
+    }
+
 }

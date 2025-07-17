@@ -77,7 +77,7 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
         final List<String> allSqlCreateStrings = new ArrayList<>();
         applyCreateSequences(exportable, allSqlCreateStrings);
         // Middle Table
-        exportable = applyConstructMiddleTables(exportable);
+        exportable = applyConstructMiddleTables(exportable, true);
         applyCreateTables(exportable, allSqlCreateStrings);
         applyCreateForeignKeys(exportable, allSqlCreateStrings);
         return allSqlCreateStrings;
@@ -87,7 +87,7 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
     public List<String> getSqlDropStrings(Collection<ImmutableType> exportable) {
         final List<String> allSqlCreateStrings = new ArrayList<>();
         // Middle Table
-        exportable = applyConstructMiddleTables(exportable);
+        exportable = applyConstructMiddleTables(exportable, false);
         applyDropForeignKeys(exportable, allSqlCreateStrings);
         applyDropTables(exportable, allSqlCreateStrings);
         applyDropSequences(exportable, allSqlCreateStrings);
@@ -133,7 +133,7 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
         }
     }
 
-    private Collection<ImmutableType> applyConstructMiddleTables(Collection<ImmutableType> exportable) {
+    private Collection<ImmutableType> applyConstructMiddleTables(Collection<ImmutableType> exportable, boolean isCreate) {
         Set<String> tableNames = new HashSet<>();
         for (ImmutableType immutableType : exportable) {
             tableNames.add(immutableType.getTableName(client.getMetadataStrategy()));
@@ -279,7 +279,11 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
                                 }
                             };
                             fakeImmutableType.selectableProps = fakeImmutableType.props;
-                            withMiddleTables.add(fakeImmutableType);
+                            if (isCreate) {
+                                withMiddleTables.add(fakeImmutableType);
+                            } else {
+                                withMiddleTables.add(0, fakeImmutableType);
+                            }
                         }
                     }
                 }
@@ -300,7 +304,7 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
         }
         int i = 1;
         for (ImmutableType immutableType : exportable) {
-            for (ForeignKey foreignKey : getForeignKeys(immutableType)) {
+            for (ForeignKey foreignKey : DDLUtils.getForeignKeys(client.getMetadataStrategy(), immutableType)) {
                 List<String> sqlCreateStrings = standardForeignKeyExporter.getSqlCreateStrings(foreignKey);
                 allSqlCreateStrings.addAll(sqlCreateStrings);
                 if (log.isDebugEnabled()) {
@@ -324,7 +328,7 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
         }
         int i = 1;
         for (ImmutableType immutableType : exportable) {
-            for (ForeignKey foreignKey : getForeignKeys(immutableType)) {
+            for (ForeignKey foreignKey : DDLUtils.getForeignKeys(client.getMetadataStrategy(), immutableType)) {
                 List<String> sqlCreateStrings = standardForeignKeyExporter.getSqlDropStrings(foreignKey);
                 allSqlCreateStrings.addAll(sqlCreateStrings);
                 if (log.isDebugEnabled()) {
@@ -373,52 +377,5 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
             }
         }
     }
-
-    private List<ForeignKey> getForeignKeys(ImmutableType immutableType) {
-        List<ForeignKey> foreignKeys = new ArrayList<>();
-        Map<String, ImmutableProp> allDefinitionProps = DDLUtils.allDefinitionProps(immutableType);
-        for (Map.Entry<String, ImmutableProp> entry : allDefinitionProps.entrySet()) {
-            ImmutableProp definitionProps = entry.getValue();
-            if (definitionProps.isTargetForeignKeyReal(client.getMetadataStrategy())) {
-                ColumnDef columnDef = definitionProps.getAnnotation(ColumnDef.class);
-                org.babyfish.jimmer.sql.ddl.annotations.ForeignKey foreignKey;
-                if (columnDef != null) {
-                    foreignKey = columnDef.foreignKey();
-                } else {
-                    foreignKey = DEFAULT;
-                }
-                ForeignKey _foreignKey = new ForeignKey(foreignKey, definitionProps, immutableType, definitionProps.getTargetType());
-                foreignKeys.add(_foreignKey);
-            }
-        }
-        return foreignKeys;
-    }
-
-    private static final org.babyfish.jimmer.sql.ddl.annotations.ForeignKey DEFAULT = new org.babyfish.jimmer.sql.ddl.annotations.ForeignKey() {
-        @Override
-        public String name() {
-            return "";
-        }
-
-        @Override
-        public String definition() {
-            return "";
-        }
-
-        @Override
-        public OnDeleteAction action() {
-            return OnDeleteAction.NONE;
-        }
-
-        @Override
-        public Class<? extends ConstraintNamingStrategy> naming() {
-            return ConstraintNamingStrategy.class;
-        }
-
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return org.babyfish.jimmer.sql.ddl.annotations.ForeignKey.class;
-        }
-    };
 
 }

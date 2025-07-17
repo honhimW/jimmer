@@ -71,6 +71,8 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
 
         appendUniqueConstraints(bufferContext);
 
+        appendForeignKeys(bufferContext);
+
         appendTableCheck(bufferContext);
 
         if (isPretty()) {
@@ -472,6 +474,57 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
             }
         }
         bufferContext.buf.append(')');
+    }
+
+    /**
+     * <a href="https://sqlite.org/foreignkeys.html">SQLite Foreign Key Support</a>
+     *
+     * <pre>
+     * CREATE TABLE artist(
+     *   artistid    INTEGER PRIMARY KEY,
+     *   artistname  TEXT
+     * );
+     * CREATE TABLE track(
+     *   trackid     INTEGER,
+     *   trackname   TEXT,
+     *   trackartist INTEGER,     -- Must map to an artist.artistid!
+     *   FOREIGN KEY(trackartist) REFERENCES artist(artistid) -- Add foreign key Here!
+     * );
+     * </pre>
+     *
+     */
+    private void appendForeignKeys(BufferContext bufferContext) {
+        if (dialect.supportsCreateTableWithForeignKey()) {
+            for (ForeignKey foreignKey : DDLUtils.getForeignKeys(client.getMetadataStrategy(), bufferContext.tableType)) {
+                appendForeignKey(bufferContext, foreignKey);
+            }
+        }
+    }
+
+    private void appendForeignKey(BufferContext bufferContext, ForeignKey foreignKey) {
+        bufferContext.buf.append(',');
+        if (isPretty()) {
+            bufferContext.buf.append('\n').append(client.getSqlFormatter().getIndent());
+        } else {
+            bufferContext.buf.append(' ');
+        }
+
+        String targetTableName = foreignKey.referencedTable.getTableName(client.getMetadataStrategy());
+        String joinColumnName = DDLUtils.getName(foreignKey.joinColumn, client.getMetadataStrategy());
+
+        bufferContext.buf
+            .append("foreign key(")
+            .append(joinColumnName)
+            .append(')')
+            .append(" references ")
+            .append(targetTableName)
+            .append('(')
+            .append(DDLUtils.getName(foreignKey.referencedTable.getIdProp(), client.getMetadataStrategy()))
+            .append(')');
+        OnDeleteAction action = foreignKey.foreignKey.action();
+        if (action != OnDeleteAction.NONE) {
+            bufferContext.buf.append(" on delete ").append(action.sql);
+        }
     }
 
     private String getName(ImmutableProp prop) {

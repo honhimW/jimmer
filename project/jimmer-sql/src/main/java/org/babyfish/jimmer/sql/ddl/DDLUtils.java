@@ -17,7 +17,9 @@ import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.babyfish.jimmer.sql.meta.impl.Storages;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.sql.Types.*;
@@ -94,6 +96,26 @@ public class DDLUtils {
             }
         });
         return props;
+    }
+
+    public static List<ForeignKey> getForeignKeys(MetadataStrategy metadataStrategy, ImmutableType immutableType) {
+        List<ForeignKey> foreignKeys = new ArrayList<>();
+        Map<String, ImmutableProp> allDefinitionProps = DDLUtils.allDefinitionProps(immutableType);
+        for (Map.Entry<String, ImmutableProp> entry : allDefinitionProps.entrySet()) {
+            ImmutableProp definitionProps = entry.getValue();
+            if (definitionProps.isTargetForeignKeyReal(metadataStrategy)) {
+                ColumnDef columnDef = definitionProps.getAnnotation(ColumnDef.class);
+                org.babyfish.jimmer.sql.ddl.annotations.ForeignKey foreignKey;
+                if (columnDef != null) {
+                    foreignKey = columnDef.foreignKey();
+                } else {
+                    foreignKey = new DefaultForeignKey();
+                }
+                ForeignKey _foreignKey = new ForeignKey(foreignKey, definitionProps, immutableType, definitionProps.getTargetType());
+                foreignKeys.add(_foreignKey);
+            }
+        }
+        return foreignKeys;
     }
 
     public static class DefaultColumnDef implements ColumnDef {

@@ -43,6 +43,9 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
 
     @Override
     public List<String> getSqlCreateStrings(ForeignKey exportable) {
+        if (!dialect.hasAlterTable()) {
+            return Collections.emptyList();
+        }
         String sourceTableName = exportable.table.getTableName(client.getMetadataStrategy());
         String targetTableName = exportable.referencedTable.getTableName(client.getMetadataStrategy());
 
@@ -81,6 +84,9 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
 
     @Override
     public List<String> getSqlDropStrings(ForeignKey exportable) {
+        if (!dialect.hasAlterTable()) {
+            return Collections.emptyList();
+        }
         StringBuilder buf = new StringBuilder();
         buf.append("alter table ");
         if (dialect.supportsIfExistsAfterAlterTable()) {

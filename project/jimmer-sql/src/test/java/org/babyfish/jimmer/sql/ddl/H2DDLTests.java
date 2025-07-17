@@ -16,6 +16,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -94,6 +95,7 @@ public class H2DDLTests extends AbstractDDLTest {
                 // test tables contains foreign-key
                 continue;
             }
+            System.out.println("############" + mode.name() + "############");
             JSqlClientImplementor sqlClient = getSqlClient(builder -> builder
                 .setDialect(dialect)
                 .setConnectionManager(testConnectionManager())
@@ -103,14 +105,15 @@ public class H2DDLTests extends AbstractDDLTest {
             schemaCreator.init();
             List<Table<?>> tables = new ArrayList<>();
             tables.add(Tables.AUTHOR_TABLE);
-            tables.add(Tables.BOOK_TABLE);
             tables.add(Tables.BOOK_STORE_TABLE);
+            tables.add(Tables.BOOK_TABLE);
             tables.add(Tables.COUNTRY_TABLE);
             tables.add(Tables.ORGANIZATION_TABLE);
             List<ImmutableType> types = tables.stream().map(TableTypeProvider::getImmutableType).collect(Collectors.toList());
 
             // create sql statements
             List<String> sqlCreateStrings = schemaCreator.getSqlCreateStrings(types);
+            Collections.reverse(types);
             // drop sql statements
             List<String> sqlDropStrings = schemaCreator.getSqlDropStrings(types);
 
@@ -143,7 +146,7 @@ public class H2DDLTests extends AbstractDDLTest {
                     });
                 });
             }
-
+            System.out.println("============== drop ================");
             Assertions.assertDoesNotThrow(() -> {
                 testConnectionManager().execute(inMemoryDataSource.getConnection(), connection -> {
                     for (String sqlDropString : sqlDropStrings) {

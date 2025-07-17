@@ -67,4 +67,18 @@ public class SQLiteDDLDialect extends DefaultDDLDialect {
         return false;
     }
 
+    @Override
+    public boolean supportsCommentOn() {
+        return false;
+    }
+
+    @Override
+    public boolean hasAlterTable() {
+        return false;
+    }
+
+    @Override
+    public boolean supportsCreateTableWithForeignKey() {
+        return true;
+    }
 }
