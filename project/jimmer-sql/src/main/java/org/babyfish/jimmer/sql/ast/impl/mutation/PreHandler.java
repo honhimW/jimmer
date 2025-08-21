@@ -614,7 +614,7 @@ abstract class AbstractPreHandler implements PreHandler {
                     ExecutionPurpose.MUTATE,
                     FilterLevel.IGNORE_ALL
             );
-            Table<?> table = q.getTableImplementor();
+            Table<?> table = (Table<?>) q.getTableLikeImplementor();
             q.where(table.getId().in(ids));
             List<Object> actualTargetIds = q.select(table.getId()).execute(ctx.con);
             if (actualTargetIds.size() < ids.size()) {
@@ -956,6 +956,8 @@ class UpsertPreHandler extends AbstractPreHandler {
                         items.add(newItem(draft, original));
                     }
                 }
+            } else {
+                updatedList = new ArrayList<>(draftsWithId);
             }
         }
 
@@ -1014,7 +1016,18 @@ class UpsertPreHandler extends AbstractPreHandler {
                     updatedMap.add(draft, true);
                 }
             }
-            this.mergedMap = ShapedEntityMap.empty();
+            // key如果在数据库存在的情况下 updatedMap不为空 如果不做判断会导致多一条merge sql
+            if (updatedMap != null) {
+                this.mergedMap = ShapedEntityMap.empty();
+            } else {
+                this.mergedMap = createEntityMap(
+                        null,
+                        draftsWithId,
+                        draftsWithKey,
+                        SaveMode.UPSERT,
+                        SaveMode.UPSERT
+                );
+            }
         }
     }
 }

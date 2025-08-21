@@ -2,6 +2,7 @@ package org.babyfish.jimmer.apt.client;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
+import org.babyfish.jimmer.ClientException;
 import org.babyfish.jimmer.Immutable;
 import org.babyfish.jimmer.apt.Context;
 import org.babyfish.jimmer.apt.GeneratorException;
@@ -10,12 +11,14 @@ import org.babyfish.jimmer.apt.immutable.generator.Annotations;
 import org.babyfish.jimmer.apt.immutable.generator.Constants;
 import org.babyfish.jimmer.apt.util.ConverterMetadata;
 import org.babyfish.jimmer.apt.util.GenericParser;
-import org.babyfish.jimmer.client.*;
+import org.babyfish.jimmer.client.ApiIgnore;
+import org.babyfish.jimmer.client.FetchBy;
+import org.babyfish.jimmer.client.TNullable;
 import org.babyfish.jimmer.client.meta.*;
 import org.babyfish.jimmer.client.meta.impl.*;
-import org.babyfish.jimmer.error.*;
+import org.babyfish.jimmer.error.CodeBasedException;
+import org.babyfish.jimmer.error.CodeBasedRuntimeException;
 import org.babyfish.jimmer.impl.util.StringUtil;
-import org.babyfish.jimmer.ClientException;
 import org.babyfish.jimmer.sql.Embeddable;
 import org.babyfish.jimmer.sql.Entity;
 import org.babyfish.jimmer.sql.MappedSuperclass;
@@ -24,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
-import javax.lang.model.util.Elements;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.*;
@@ -33,6 +35,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class ClientProcessor {
 
@@ -52,8 +55,6 @@ public class ClientProcessor {
 
     private final ClientExceptionContext clientExceptionContext;
 
-    private final Elements elements;
-
     private final Collection<String> delayedClientTypeNames;
 
     private final File jimmerClientFile;
@@ -66,14 +67,12 @@ public class ClientProcessor {
 
     public ClientProcessor(
             Context context,
-            Elements elements,
             boolean explicitApi,
             Collection<String> delayedClientTypeNames
     ) {
         this.context = context;
         this.clientExceptionContext = new ClientExceptionContext(context);
         this.docMetadata = new DocMetadata(context);
-        this.elements = elements;
         this.explicitApi = explicitApi;
         this.delayedClientTypeNames = delayedClientTypeNames;
 
@@ -90,7 +89,7 @@ public class ClientProcessor {
             @Nullable
             @Override
             protected Element loadSource(String typeName) {
-                return elements.getTypeElement(typeName);
+                return context.getElements().getTypeElement(typeName);
             }
 
             @Override
@@ -372,7 +371,7 @@ public class ClientProcessor {
             }
         }
 
-        Element ownerElement = elements.getTypeElement(owner.toString());
+        Element ownerElement = context.getElements().getTypeElement(owner.toString());
         VariableElement fetcherElement = null;
         for (Element element : ownerElement.getEnclosedElements()) {
             if (element.getKind() == ElementKind.FIELD &&
@@ -594,6 +593,25 @@ public class ClientProcessor {
         if (jsonValueTypeRef != null) {
             throw new JsonValueTypeChangeException(jsonValueTypeRef);
         }
+        String simpleName = typeElement.getSimpleName().toString();
+
+        // 对于JsonObject等特殊类型，将其视为Object类型
+        boolean jsonFlag = Stream.of(
+                "JsonNode",
+                "JSONObject",
+                "JsonObject",
+                "JsonElement",
+                "ObjectNode",
+                "ArrayNode"
+        ).anyMatch(simpleName::equalsIgnoreCase);
+        if (jsonFlag) {
+            typeRef.setTypeName(TypeName.OBJECT);
+            return;
+        }
+
+
+
+
         if (!typeElement.getTypeParameters().isEmpty() && declaredType.getTypeArguments().isEmpty()) {
             throw new NoGenericArgumentsException(
                     builder.ancestorSource(ApiOperationImpl.class, ApiParameterImpl.class),

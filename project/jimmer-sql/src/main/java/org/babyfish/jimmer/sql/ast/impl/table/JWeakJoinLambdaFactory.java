@@ -1,6 +1,7 @@
 package org.babyfish.jimmer.sql.ast.impl.table;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
+import org.babyfish.jimmer.sql.ast.table.BaseTable;
 import org.babyfish.jimmer.sql.ast.table.Table;
 import org.babyfish.jimmer.sql.ast.table.WeakJoin;
 import org.babyfish.jimmer.sql.ast.table.spi.AbstractTypedTable;
@@ -21,8 +22,8 @@ public class JWeakJoinLambdaFactory extends AbstractWeakJoinLambdaFactory {
 
     @Override
     protected Class<?>[] getTypes(SerializedLambda serializedLambda) {
-        org.babyfish.jimmer.impl.asm.Type[] asmTypes =
-                org.babyfish.jimmer.impl.asm.Type.getArgumentTypes(serializedLambda.getImplMethodSignature());
+        org.babyfish.jimmer.impl.org.objectweb.asm.Type[] asmTypes =
+                org.babyfish.jimmer.impl.org.objectweb.asm.Type.getArgumentTypes(serializedLambda.getImplMethodSignature());
         Class<?>[] types = new Class[asmTypes.length];
         for (int i = 0; i < asmTypes.length; i++) {
             String className = asmTypes[i].getInternalName().replace('/', '.');
@@ -39,6 +40,10 @@ public class JWeakJoinLambdaFactory extends AbstractWeakJoinLambdaFactory {
                                 className +
                                 "\" cannot be found"
                 );
+            }
+            if (BaseTable.class.isAssignableFrom(type)) {
+                types[i] = type;
+                continue;
             }
             if (!AbstractTypedTable.class.isAssignableFrom(type)) {
                 throw new IllegalArgumentException(
