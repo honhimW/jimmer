@@ -1,5 +1,6 @@
 package org.babyfish.jimmer;
 
+import org.babyfish.jimmer.model.Author;
 import org.babyfish.jimmer.model.AuthorDraft;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -30,5 +31,12 @@ public class AuthorTest {
         Assertions.assertThrows(ValidationException.class, () -> {
             AuthorDraft.$.produce(a -> a.setEmail("tomgmail.com@"));
         });
+    }
+
+    @Test
+    public void testTrait() {
+        Author foo = AuthorDraft.$.produce(a -> a.setName("foo"));
+        String apply = foo.doFuck("bar").apply("call");
+        assert "call foo fuck bar".equals(apply);
     }
 }
