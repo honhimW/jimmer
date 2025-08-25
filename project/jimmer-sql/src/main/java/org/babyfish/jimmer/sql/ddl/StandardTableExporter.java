@@ -6,7 +6,6 @@ import org.babyfish.jimmer.meta.EmbeddedLevel;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TargetLevel;
-import org.babyfish.jimmer.sql.EnumItem;
 import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.ddl.annotations.*;
@@ -17,8 +16,8 @@ import org.babyfish.jimmer.sql.meta.Storage;
 import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.babyfish.jimmer.sql.meta.impl.Storages;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
+import org.babyfish.jimmer.sql.runtime.ScalarProvider;
 
-import java.lang.reflect.Field;
 import java.sql.DatabaseMetaData;
 import java.sql.Types;
 import java.util.*;
@@ -295,7 +294,6 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
         }
 
         String sqlType = dialect.resolveSqlType(prop.getReturnClass(), strategy);
-        String columnType = dialect.resolveSqlType(prop.getReturnClass(), strategy);
         int jdbcType = dialect.resolveJdbcType(prop.getReturnClass(), strategy);
         long l = dialect.getDefaultLength(jdbcType);
         Integer p = DDLUtils.resolveDefaultPrecision(jdbcType, dialect);
@@ -325,6 +323,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
             s = colDef.scale() > 0 ? colDef.scale() : dialect.getDefaultScale(jdbcType);
         }
 
+        String columnType;
         if (StringUtils.isNotBlank(sqlType)) {
             columnType = DDLUtils.replace(sqlType, l, p, s);
         } else {
@@ -371,37 +370,24 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
         if (dialect.supportsColumnCheck()) {
             Class<?> returnClass = prop.getReturnClass();
             if (returnClass.isEnum()) {
-                EnumType.Strategy strategy = resolveEnumStrategy(prop);
+                ScalarProvider<Enum<?>, ?> scalarProvider = this.client.getScalarProvider(prop);
                 Enum<?>[] enumConstants = (Enum<?>[]) returnClass.getEnumConstants();
                 if (enumConstants.length > 0) {
                     String checkCondition;
-                    switch (strategy) {
-                        case ORDINAL:
-                            checkCondition = dialect.getCheckCondition(getName(prop), 0, enumConstants.length - 1);
-                            break;
-                        case NAME:
-                        default:
-                            List<String> names = Arrays.stream(enumConstants).map(enumValue -> {
-                                try {
-                                    Field e = returnClass.getField(enumValue.name());
-                                    EnumItem enumItem = e.getAnnotation(EnumItem.class);
-                                    if (enumItem != null) {
-                                        return enumItem.name();
-                                    }
-                                } catch (NoSuchFieldException ignore) {
-                                }
-                                return enumValue.name();
-                            }).collect(Collectors.toList());
-                            if (prop.isNullable()) {
-                                names.add(null);
+                    if (String.class.isAssignableFrom(scalarProvider.getSqlType())) {
+                        List<String> names = Arrays.stream(enumConstants).map(enumValue -> {
+                            try {
+                                return (String) scalarProvider.toSql(enumValue);
+                            } catch (Exception ignore) {
                             }
-                            checkCondition = dialect.getCheckCondition(getName(prop), names);
-                            break;
-
+                            return enumValue.name();
+                        }).collect(Collectors.toList());
+                        checkCondition = dialect.getCheckCondition(getName(prop), names);
+                    } else {
+                        checkCondition = dialect.getCheckCondition(getName(prop), 0, enumConstants.length - 1);
                     }
                     bufferContext.buf.append(" check (").append(checkCondition).append(')');
                 }
-
             }
         }
     }
