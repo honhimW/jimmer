@@ -1,4 +1,4 @@
-package org.babyfish.jimmer.sql.ddl.annotations;
+package org.babyfish.jimmer.sql.ddl.anno;
 
 import org.babyfish.jimmer.meta.ImmutableProp;
 
@@ -50,7 +50,7 @@ public @interface ColumnDef {
      */
     String definition() default "";
 
-    ForeignKey foreignKey() default @ForeignKey;
+    Relation foreignKey() default @Relation;
 
     enum Nullable {
         TRUE, FALSE, NULL

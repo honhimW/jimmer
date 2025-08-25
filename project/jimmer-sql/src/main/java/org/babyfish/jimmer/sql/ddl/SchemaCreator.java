@@ -5,10 +5,9 @@ import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TargetLevel;
 import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.ManyToMany;
-import org.babyfish.jimmer.sql.ddl.annotations.ColumnDef;
-import org.babyfish.jimmer.sql.ddl.annotations.Kind;
-import org.babyfish.jimmer.sql.ddl.annotations.OnDeleteAction;
-import org.babyfish.jimmer.sql.ddl.annotations.Unique;
+import org.babyfish.jimmer.sql.ddl.anno.Kind;
+import org.babyfish.jimmer.sql.ddl.anno.Relation;
+import org.babyfish.jimmer.sql.ddl.anno.Unique;
 import org.babyfish.jimmer.sql.ddl.fake.FakeImmutablePropImpl;
 import org.babyfish.jimmer.sql.ddl.fake.FakeImmutableTypeImpl;
 import org.babyfish.jimmer.sql.meta.MiddleTable;
@@ -160,27 +159,27 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
                             ImmutableProp inverseJoinProp = prop.getTargetType().getIdProp();
                             String joinColumnName = client.getMetadataStrategy().getNamingStrategy().middleTableBackRefColumnName(prop);
                             String inverseJoinColumnName = client.getMetadataStrategy().getNamingStrategy().middleTableTargetRefColumnName(prop);
-                            org.babyfish.jimmer.sql.ddl.annotations.MiddleTable annotation = prop.getAnnotation(org.babyfish.jimmer.sql.ddl.annotations.MiddleTable.class);
+                            org.babyfish.jimmer.sql.ddl.anno.MiddleTable annotation = prop.getAnnotation(org.babyfish.jimmer.sql.ddl.anno.MiddleTable.class);
                             boolean useAutoId;
                             boolean useRealForeignKey;
                             String comment;
                             String tableType;
-                            org.babyfish.jimmer.sql.ddl.annotations.ForeignKey joinColumnForeignKey;
-                            org.babyfish.jimmer.sql.ddl.annotations.ForeignKey inverseJoinColumnForeignKey;
+                            Relation joinColumnRelation;
+                            Relation inverseJoinColumnRelation;
                             if (annotation != null) {
                                 comment = annotation.comment();
                                 tableType = annotation.tableType();
                                 useAutoId = annotation.useAutoId();
                                 useRealForeignKey = annotation.useRealForeignKey();
-                                joinColumnForeignKey = annotation.joinColumnForeignKey();
-                                inverseJoinColumnForeignKey = annotation.inverseJoinColumnForeignKey();
+                                joinColumnRelation = annotation.joinColumnForeignKey();
+                                inverseJoinColumnRelation = annotation.inverseJoinColumnForeignKey();
                             } else {
                                 useAutoId = false;
                                 useRealForeignKey = true;
                                 comment = "";
                                 tableType = "";
-                                joinColumnForeignKey = new DDLUtils.DefaultForeignKey();
-                                inverseJoinColumnForeignKey = new DDLUtils.DefaultForeignKey();
+                                joinColumnRelation = new DDLUtils.DefaultRelation();
+                                inverseJoinColumnRelation = new DDLUtils.DefaultRelation();
                             }
 
                             FakeImmutableTypeImpl fakeImmutableType = new FakeImmutableTypeImpl();
@@ -221,8 +220,8 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
                             if (useRealForeignKey) {
                                 fakeJoinProp.annotations = new Annotation[]{new DDLUtils.DefaultColumnDef() {
                                     @Override
-                                    public org.babyfish.jimmer.sql.ddl.annotations.ForeignKey foreignKey() {
-                                        return joinColumnForeignKey;
+                                    public Relation foreignKey() {
+                                        return joinColumnRelation;
                                     }
                                 }};
                                 fakeJoinProp.isTargetForeignKeyReal = true;
@@ -237,8 +236,8 @@ public class SchemaCreator implements Exporter<Collection<ImmutableType>> {
                             if (useRealForeignKey) {
                                 fakeInverseJoin.annotations = new Annotation[]{new DDLUtils.DefaultColumnDef() {
                                     @Override
-                                    public org.babyfish.jimmer.sql.ddl.annotations.ForeignKey foreignKey() {
-                                        return inverseJoinColumnForeignKey;
+                                    public Relation foreignKey() {
+                                        return inverseJoinColumnRelation;
                                     }
                                 }};
                                 fakeInverseJoin.isTargetForeignKeyReal = true;

@@ -8,7 +8,7 @@ import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TargetLevel;
 import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.GeneratedValue;
-import org.babyfish.jimmer.sql.ddl.annotations.*;
+import org.babyfish.jimmer.sql.ddl.anno.*;
 import org.babyfish.jimmer.sql.ddl.dialect.DDLDialect;
 import org.babyfish.jimmer.sql.meta.EmbeddedColumns;
 import org.babyfish.jimmer.sql.meta.SingleColumn;
@@ -519,7 +519,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
             .append('(')
             .append(DDLUtils.getName(foreignKey.referencedTable.getIdProp(), client.getMetadataStrategy()))
             .append(')');
-        OnDeleteAction action = foreignKey.foreignKey.action();
+        OnDeleteAction action = foreignKey.relation.action();
         if (action != OnDeleteAction.NONE) {
             bufferContext.buf.append(" on delete ").append(action.sql);
         }

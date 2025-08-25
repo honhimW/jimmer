@@ -1,4 +1,5 @@
-package org.babyfish.jimmer.sql.ddl.annotations;
+package org.babyfish.jimmer.sql.ddl.anno;
+
 
 import org.babyfish.jimmer.sql.ddl.ConstraintNamingStrategy;
 
@@ -11,14 +12,20 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Target({})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Unique {
+public @interface Index {
 
     String name() default "";
 
     /**
-     * (Required) An array of the column names that make up the constraint.
+     * (Required) The names of the columns to be included in the index,
+     * in order.
      */
     String[] columns();
+
+    /**
+     * (Optional) Whether the index is unique.
+     */
+    boolean unique() default false;
 
     Kind kind() default Kind.PATH;
 

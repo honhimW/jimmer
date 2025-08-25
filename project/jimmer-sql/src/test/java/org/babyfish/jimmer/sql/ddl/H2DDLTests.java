@@ -110,6 +110,7 @@ public class H2DDLTests extends AbstractDDLTest {
             tables.add(Tables.COUNTRY_TABLE);
             tables.add(Tables.ORGANIZATION_TABLE);
             List<ImmutableType> types = tables.stream().map(TableTypeProvider::getImmutableType).collect(Collectors.toList());
+            types = DDLUtils.sortByDependent(sqlClient.getMetadataStrategy(), types);
 
             // create sql statements
             List<String> sqlCreateStrings = schemaCreator.getSqlCreateStrings(types);

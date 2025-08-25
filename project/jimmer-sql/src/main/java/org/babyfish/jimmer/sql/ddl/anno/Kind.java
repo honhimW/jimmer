@@ -1,4 +1,4 @@
-package org.babyfish.jimmer.sql.ddl.annotations;
+package org.babyfish.jimmer.sql.ddl.anno;
 
 /**
  * @see Index#columns() values type

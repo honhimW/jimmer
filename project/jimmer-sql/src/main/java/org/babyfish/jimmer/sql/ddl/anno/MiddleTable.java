@@ -1,4 +1,4 @@
-package org.babyfish.jimmer.sql.ddl.annotations;
+package org.babyfish.jimmer.sql.ddl.anno;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -37,9 +37,9 @@ public @interface MiddleTable {
 
     boolean useRealForeignKey() default true;
 
-    ForeignKey joinColumnForeignKey() default @ForeignKey;
+    Relation joinColumnForeignKey() default @Relation;
 
-    ForeignKey inverseJoinColumnForeignKey() default @ForeignKey;
+    Relation inverseJoinColumnForeignKey() default @Relation;
 
     String comment() default "";
 

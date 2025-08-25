@@ -1,12 +1,11 @@
 package org.babyfish.jimmer.sql.ddl;
 
-import org.apache.commons.lang3.StringUtils;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TargetLevel;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.common.AbstractTest;
-import org.babyfish.jimmer.sql.ddl.annotations.ColumnDef;
+import org.babyfish.jimmer.sql.ddl.anno.ColumnDef;
 import org.babyfish.jimmer.sql.ddl.dialect.DDLDialect;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.OracleDialect;

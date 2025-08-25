@@ -1,4 +1,4 @@
-package org.babyfish.jimmer.sql.ddl.annotations;
+package org.babyfish.jimmer.sql.ddl.anno;
 
 
 import org.babyfish.jimmer.sql.ddl.ConstraintNamingStrategy;
@@ -12,7 +12,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Target({})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ForeignKey {
+public @interface Relation {
 
     String name() default "";
 
