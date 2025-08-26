@@ -20,4 +20,9 @@ public interface AdministratorBase extends NamedEntity {
     @OneToOne(mappedBy = "administrator")
     @Nullable
     AdministratorMetadata getMetadata();
+
+    @Trait
+    default String onAdministratorBase() {
+        return "onAdministratorBase";
+    }
 }

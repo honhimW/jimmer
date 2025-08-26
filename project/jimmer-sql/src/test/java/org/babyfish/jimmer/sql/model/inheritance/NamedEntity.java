@@ -22,4 +22,14 @@ public interface NamedEntity {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime getModifiedTime();
+
+    @Trait
+    default String onNamedEntity() {
+        return "onNamedEntity";
+    }
+
+    @Trait
+    default String toBeOverride() {
+        return "toBeOverride";
+    }
 }

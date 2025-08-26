@@ -273,6 +273,9 @@ public class ImmutableType implements BaseType {
                                 "it overrides property of super type, this is not allowed"
                         );
                     }
+                    if (executableElement.getAnnotation(Trait.class) != null) {
+                        continue;
+                    }
                     executableElements.add(executableElement);
                     ImmutableProp prop = new ImmutableProp(
                             context,
