@@ -2,7 +2,7 @@ package org.babyfish.jimmer.sql.ddl;
 
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
-import org.babyfish.jimmer.sql.ddl.annotations.TableDef;
+import org.babyfish.jimmer.sql.ddl.anno.TableDef;
 import org.babyfish.jimmer.sql.ddl.fake.FakeImmutableTypeImpl;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 

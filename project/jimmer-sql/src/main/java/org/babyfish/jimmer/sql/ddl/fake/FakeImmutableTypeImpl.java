@@ -3,7 +3,7 @@ package org.babyfish.jimmer.sql.ddl.fake;
 import org.babyfish.jimmer.Draft;
 import org.babyfish.jimmer.meta.*;
 import org.babyfish.jimmer.runtime.DraftContext;
-import org.babyfish.jimmer.sql.ddl.annotations.TableDef;
+import org.babyfish.jimmer.sql.ddl.anno.TableDef;
 import org.babyfish.jimmer.sql.meta.IdGenerator;
 import org.babyfish.jimmer.sql.meta.LogicalDeletedValueGenerator;
 import org.babyfish.jimmer.sql.meta.MetadataStrategy;

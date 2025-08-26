@@ -8,7 +8,7 @@ import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.GenerationType;
-import org.babyfish.jimmer.sql.ddl.annotations.*;
+import org.babyfish.jimmer.sql.ddl.anno.*;
 import org.babyfish.jimmer.sql.ddl.dialect.DDLDialect;
 import org.babyfish.jimmer.sql.meta.MetadataStrategy;
 import org.babyfish.jimmer.sql.meta.SingleColumn;
@@ -17,10 +17,7 @@ import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.babyfish.jimmer.sql.meta.impl.Storages;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.sql.Types.*;
 
@@ -99,23 +96,78 @@ public class DDLUtils {
     }
 
     public static List<ForeignKey> getForeignKeys(MetadataStrategy metadataStrategy, ImmutableType immutableType) {
-        List<ForeignKey> foreignKeys = new ArrayList<>();
+        final List<ForeignKey> foreignKeys = new ArrayList<>();
         Map<String, ImmutableProp> allDefinitionProps = DDLUtils.allDefinitionProps(immutableType);
         for (Map.Entry<String, ImmutableProp> entry : allDefinitionProps.entrySet()) {
             ImmutableProp definitionProps = entry.getValue();
             if (definitionProps.isTargetForeignKeyReal(metadataStrategy)) {
                 ColumnDef columnDef = definitionProps.getAnnotation(ColumnDef.class);
-                org.babyfish.jimmer.sql.ddl.annotations.ForeignKey foreignKey;
+                Relation relation;
                 if (columnDef != null) {
-                    foreignKey = columnDef.foreignKey();
+                    relation = columnDef.foreignKey();
                 } else {
-                    foreignKey = new DefaultForeignKey();
+                    relation = new DefaultRelation();
                 }
-                ForeignKey _foreignKey = new ForeignKey(foreignKey, definitionProps, immutableType, definitionProps.getTargetType());
+                ForeignKey _foreignKey = new ForeignKey(relation, definitionProps, immutableType, definitionProps.getTargetType());
                 foreignKeys.add(_foreignKey);
             }
         }
         return foreignKeys;
+    }
+
+    public static List<ImmutableType> sortByDependent(
+        MetadataStrategy metadataStrategy,
+        Collection<ImmutableType> immutableTypes
+    ) {
+        Map<ImmutableType, List<ImmutableType>> dependencyGraph = new HashMap<>();
+        Set<ImmutableType> allTypes = new HashSet<>(immutableTypes);
+
+        for (ImmutableType type : immutableTypes) {
+            List<ForeignKey> foreignKeys = getForeignKeys(metadataStrategy, type);
+            List<ImmutableType> dependencies = new ArrayList<>();
+            for (ForeignKey fk : foreignKeys) {
+                ImmutableType dependency = fk.referencedTable;
+                if (!type.equals(dependency) && allTypes.contains(dependency)) {
+                    dependencies.add(dependency);
+                }
+            }
+            dependencyGraph.put(type, dependencies);
+        }
+
+        List<ImmutableType> sorted = new ArrayList<>();
+        Set<ImmutableType> visited = new HashSet<>();
+        Set<ImmutableType> visiting = new HashSet<>();
+
+        for (ImmutableType type : immutableTypes) {
+            if (!visited.contains(type)) {
+                dfs(type, dependencyGraph, visited, visiting, sorted);
+            }
+        }
+
+        return sorted;
+    }
+
+    private static void dfs(
+        ImmutableType type,
+        Map<ImmutableType, List<ImmutableType>> graph,
+        Set<ImmutableType> visited,
+        Set<ImmutableType> visiting,
+        List<ImmutableType> sorted
+    ) {
+        if (visiting.contains(type)) {
+            throw new IllegalStateException("Circular dependency detected involving: " + type);
+        }
+        if (visited.contains(type)) {
+            return;
+        }
+
+        visiting.add(type);
+        for (ImmutableType dep : graph.getOrDefault(type, Collections.emptyList())) {
+            dfs(dep, graph, visited, visiting, sorted);
+        }
+        visiting.remove(type);
+        visited.add(type);
+        sorted.add(type);
     }
 
     public static class DefaultColumnDef implements ColumnDef {
@@ -161,8 +213,8 @@ public class DDLUtils {
         }
 
         @Override
-        public org.babyfish.jimmer.sql.ddl.annotations.ForeignKey foreignKey() {
-            return new DefaultForeignKey();
+        public Relation foreignKey() {
+            return new DefaultRelation();
         }
 
         @Override
@@ -171,7 +223,7 @@ public class DDLUtils {
         }
     }
 
-    public static class DefaultForeignKey implements org.babyfish.jimmer.sql.ddl.annotations.ForeignKey {
+    public static class DefaultRelation implements Relation {
         @Override
         public String name() {
             return "";
@@ -194,7 +246,7 @@ public class DDLUtils {
 
         @Override
         public Class<? extends Annotation> annotationType() {
-            return org.babyfish.jimmer.sql.ddl.annotations.ForeignKey.class;
+            return Relation.class;
         }
     }
 

@@ -2,6 +2,7 @@ package org.babyfish.jimmer.sql.ddl;
 
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
+import org.babyfish.jimmer.sql.ddl.anno.Relation;
 
 /**
  * @author honhimW
@@ -9,7 +10,7 @@ import org.babyfish.jimmer.meta.ImmutableType;
 
 public class ForeignKey {
 
-    public final org.babyfish.jimmer.sql.ddl.annotations.ForeignKey foreignKey;
+    public final Relation relation;
 
     public final ImmutableProp joinColumn;
 
@@ -17,8 +18,8 @@ public class ForeignKey {
 
     public final ImmutableType referencedTable;
 
-    public ForeignKey(org.babyfish.jimmer.sql.ddl.annotations.ForeignKey foreignKey, ImmutableProp joinColumn, ImmutableType table, ImmutableType referencedTable) {
-        this.foreignKey = foreignKey;
+    public ForeignKey(Relation relation, ImmutableProp joinColumn, ImmutableType table, ImmutableType referencedTable) {
+        this.relation = relation;
         this.joinColumn = joinColumn;
         this.table = table;
         this.referencedTable = referencedTable;

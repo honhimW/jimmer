@@ -1,7 +1,7 @@
 package org.babyfish.jimmer.sql.ddl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.babyfish.jimmer.sql.ddl.annotations.OnDeleteAction;
+import org.babyfish.jimmer.sql.ddl.anno.OnDeleteAction;
 import org.babyfish.jimmer.sql.ddl.dialect.DDLDialect;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
@@ -58,11 +58,11 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
 
         String joinColumnName = DDLUtils.getName(exportable.joinColumn, client.getMetadataStrategy());
         String foreignKeyName = getForeignKeyName(exportable);
-        if (StringUtils.isNotBlank(exportable.foreignKey.definition())) {
+        if (StringUtils.isNotBlank(exportable.relation.definition())) {
             buf.append(" add constraint ")
                 .append(dialect.quote(foreignKeyName))
                 .append(' ')
-                .append(exportable.foreignKey.definition());
+                .append(exportable.relation.definition());
         } else {
             buf.append(" add constraint ")
                 .append(dialect.quote(foreignKeyName))
@@ -75,7 +75,7 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
                 .append(DDLUtils.getName(exportable.referencedTable.getIdProp(), client.getMetadataStrategy()))
                 .append(')');
         }
-        OnDeleteAction action = exportable.foreignKey.action();
+        OnDeleteAction action = exportable.relation.action();
         if (action != OnDeleteAction.NONE) {
             buf.append(" on delete ").append(action.sql);
         }
@@ -106,11 +106,11 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
 
     protected String getForeignKeyName(ForeignKey exportable) {
         String sourceTableName = exportable.table.getTableName(client.getMetadataStrategy());
-        String foreignKeyName = exportable.foreignKey.name();
+        String foreignKeyName = exportable.relation.name();
         String joinColumnName = DDLUtils.getName(exportable.joinColumn, client.getMetadataStrategy());
         if (StringUtils.isBlank(foreignKeyName)) {
             try {
-                ConstraintNamingStrategy ns = exportable.foreignKey.naming().getConstructor().newInstance();
+                ConstraintNamingStrategy ns = exportable.relation.naming().getConstructor().newInstance();
                 foreignKeyName = ns.determineForeignKeyName(sourceTableName, new String[]{joinColumnName});
             } catch (Exception e) {
                 throw new IllegalArgumentException("NamingStrategy doesn't have a no-arg constructor");
