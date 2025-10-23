@@ -1,6 +1,9 @@
 package org.babyfish.jimmer.sql.model;
 
 import org.babyfish.jimmer.sql.*;
+import org.babyfish.jimmer.trait.Trait;
+
+import java.util.function.Function;
 
 @Entity
 @KeyUniqueConstraint
@@ -23,4 +26,9 @@ public interface SysUser {
     String nickName();
 
     String description();
+
+    @Trait
+    default Function<String, String> fuck(String other) {
+        return s -> s + " fuck " + other;
+    }
 }

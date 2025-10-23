@@ -9,6 +9,7 @@ import org.babyfish.jimmer.lang.Ref;
 import org.babyfish.jimmer.sql.*;
 
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import java.util.*;
@@ -272,6 +273,14 @@ public class ImmutableType implements BaseType {
                                 executableElement,
                                 "it overrides property of super type, this is not allowed"
                         );
+                    }
+                    if (executableElement.getAnnotationMirrors().stream().anyMatch(annotationMirror -> {
+                        DeclaredType declaredType = annotationMirror.getAnnotationType();
+                        Element e = declaredType.asElement();
+                        Name simpleName = e.getSimpleName();
+                        return simpleName.contentEquals("Trait");
+                    })) {
+                        continue;
                     }
                     executableElements.add(executableElement);
                     ImmutableProp prop = new ImmutableProp(
