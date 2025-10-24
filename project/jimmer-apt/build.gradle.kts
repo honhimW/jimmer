@@ -2,6 +2,8 @@ plugins {
     `java-convention`
 }
 
+group = "io.github.honhimw"
+
 dependencies {
     implementation(projects.jimmerMapstructApt)
     implementation(projects.jimmerCore)
