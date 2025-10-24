@@ -19,7 +19,7 @@ mavenPublishing {
 
 mavenPublishing {
 
-    coordinates(project.group.toString(), project.name, project.version.toString())
+//    coordinates(project.group.toString(), project.name, project.version.toString())
 
     pom {
         name.set("Jimmer")
