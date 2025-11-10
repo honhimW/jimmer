@@ -3,6 +3,7 @@ package org.babyfish.jimmer.sql.ast.impl.mutation;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.PropId;
 import org.babyfish.jimmer.runtime.ImmutableSpi;
+import org.babyfish.jimmer.sql.ast.impl.TupleImplementor;
 import org.babyfish.jimmer.sql.ast.mutation.QueryReason;
 import org.babyfish.jimmer.sql.ast.tuple.Tuple2;
 import org.babyfish.jimmer.sql.dialect.Dialect;
@@ -11,7 +12,6 @@ import org.babyfish.jimmer.sql.fetcher.impl.FetcherImpl;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.babyfish.jimmer.sql.runtime.MutationPath;
 
-import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -92,7 +92,7 @@ class MiddleTableInvestigator {
     }
 
     private Exception translateAll() {
-        Collection<Object> targetIds = Tuple2.projection2(idTuples);
+        Collection<Object> targetIds = TupleImplementor.projection(idTuples, 1);
         List<ImmutableSpi> existingTargets = Rows.findRows(
                 sqlClient,
                 con,

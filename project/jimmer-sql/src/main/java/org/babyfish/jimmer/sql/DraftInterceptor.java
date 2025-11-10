@@ -152,6 +152,18 @@ public interface DraftInterceptor<E, D extends Draft> {
             this.state = state;
         }
 
+        public D getDraft() {
+            return draft;
+        }
+
+        public @Nullable E getOriginal() {
+            return original;
+        }
+
+        public State getState() {
+            return state;
+        }
+
         public static class State {
             private final KeyMatcher.Group keyGroup;
             private final boolean isIdOnly;
@@ -161,6 +173,18 @@ public interface DraftInterceptor<E, D extends Draft> {
                 this.keyGroup = keyGroup;
                 this.isIdOnly = isIdOnly;
                 this.isKeyOnly = isKeyOnly;
+            }
+
+            public KeyMatcher.Group getKeyGroup() {
+                return keyGroup;
+            }
+
+            public boolean isIdOnly() {
+                return isIdOnly;
+            }
+
+            public boolean isKeyOnly() {
+                return isKeyOnly;
             }
         }
     }

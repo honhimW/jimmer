@@ -1,5 +1,6 @@
 package org.babyfish.jimmer.sql.ast.impl.mutation;
 
+import org.babyfish.jimmer.sql.ast.impl.TupleImplementor;
 import org.babyfish.jimmer.sql.ast.impl.render.AbstractSqlBuilder;
 import org.babyfish.jimmer.sql.ast.impl.render.BatchSqlBuilder;
 import org.babyfish.jimmer.sql.ast.impl.render.ComparisonPredicates;
@@ -85,7 +86,7 @@ class ExclusiveIdPairPredicates {
         ComparisonPredicates.renderIn(
                 false,
                 sourceGetters,
-                Tuple2.projection1(idPairs.entries()),
+                TupleImplementor.projection(idPairs.entries(), 0),
                 builder
         );
         if (!idPairs.tuples().isEmpty()) {

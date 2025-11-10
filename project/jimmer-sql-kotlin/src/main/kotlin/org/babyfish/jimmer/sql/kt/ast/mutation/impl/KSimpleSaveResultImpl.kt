@@ -9,16 +9,16 @@ internal open class KSimpleSaveResultImpl<E: Any>(
 ) : KMutationResultImpl(javaResult), KSimpleSaveResult<E> {
 
     @Suppress("UNCHECKED_CAST")
-    override val originalEntity: E
-        get() = (javaResult as SimpleSaveResult<E>).originalEntity
+    override fun getOriginalEntity(): E? =
+        (javaResult as SimpleSaveResult<E>).originalEntity
 
     @Suppress("UNCHECKED_CAST")
-    override val modifiedEntity: E
-        get() = (javaResult as SimpleSaveResult<E>).modifiedEntity
+    override fun getModifiedEntity(): E? =
+        (javaResult as SimpleSaveResult<E>).modifiedEntity
 
     @Suppress("UNCHECKED_CAST")
-    override val isModified: Boolean
-        get() = (javaResult as SimpleSaveResult<E>).isModified
+    override fun isModified(): Boolean =
+        (javaResult as SimpleSaveResult<E>).isModified
 
     internal class ViewImpl<E: Any, V: View<E>>(
         javaResult: SimpleSaveResult.View<E, V>

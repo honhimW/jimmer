@@ -9,7 +9,7 @@ plugins {
 dependencies {
     api(projects.jimmerCore)
     implementation(libs.slf4j.api)
-    implementation(libs.kotlin.stdlib)
+//    implementation(libs.kotlin.stdlib)
     implementation(libs.jetbrains.annotations)
     implementation(libs.jackson.datatype.jsr310)
     compileOnly(libs.h2)
@@ -51,9 +51,9 @@ tasks.withType<Jar>().configureEach {
     dependsOn(tasks.withType<AntlrTask>())
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-    dependsOn(tasks.withType<AntlrTask>())
-}
+//tasks.withType<KotlinCompile>().configureEach {
+//    dependsOn(tasks.withType<AntlrTask>())
+//}
 
 tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.add("-Xmaxerrs")

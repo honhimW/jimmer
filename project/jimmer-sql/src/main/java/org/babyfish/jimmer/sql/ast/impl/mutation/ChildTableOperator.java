@@ -8,6 +8,7 @@ import org.babyfish.jimmer.sql.DissociateAction;
 import org.babyfish.jimmer.sql.ast.Expression;
 import org.babyfish.jimmer.sql.ast.Selection;
 import org.babyfish.jimmer.sql.ast.impl.AstContext;
+import org.babyfish.jimmer.sql.ast.impl.TupleImplementor;
 import org.babyfish.jimmer.sql.ast.impl.query.AbstractMutableQueryImpl;
 import org.babyfish.jimmer.sql.ast.impl.query.FilterLevel;
 import org.babyfish.jimmer.sql.ast.impl.query.MutableRootQueryImpl;
@@ -549,15 +550,16 @@ class ChildTableOperator extends AbstractAssociationOperator {
         }
         IdPairs retainedIdPairs = args.retainedIdPairs;
         if (retainedIdPairs.entries().size() == 1) {
+            TupleImplementor.projection(retainedIdPairs.entries(), 0);
             query.where(
                     table.getAssociatedId(ctx.backProp).in(
-                            Tuple2.projection1(retainedIdPairs.entries())
+                        TupleImplementor.projection(retainedIdPairs.entries(), 0)
                     )
             );
             if (!retainedIdPairs.tuples().isEmpty()) {
                 query.where(
                         table.getId().notIn(
-                                Tuple2.projection2(retainedIdPairs.tuples())
+                            TupleImplementor.projection(retainedIdPairs.entries(), 1)
                         )
                 );
             }
@@ -565,7 +567,7 @@ class ChildTableOperator extends AbstractAssociationOperator {
         }
         query.where(
                 table.getAssociatedId(ctx.backProp).in(
-                        Tuple2.projection1(retainedIdPairs.entries())
+                    TupleImplementor.projection(retainedIdPairs.entries(), 0)
                 )
         );
         if (!retainedIdPairs.tuples().isEmpty()) {
