@@ -550,7 +550,6 @@ class ChildTableOperator extends AbstractAssociationOperator {
         }
         IdPairs retainedIdPairs = args.retainedIdPairs;
         if (retainedIdPairs.entries().size() == 1) {
-            TupleImplementor.projection(retainedIdPairs.entries(), 0);
             query.where(
                     table.getAssociatedId(ctx.backProp).in(
                         TupleImplementor.projection(retainedIdPairs.entries(), 0)
