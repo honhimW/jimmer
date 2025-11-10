@@ -1,8 +1,10 @@
-package org.babyfish.jimmer.sql.cache
+package org.babyfish.jimmer.sql.cache;
 
-import org.babyfish.jimmer.sql.event.AssociationEvent
-import org.babyfish.jimmer.sql.event.EntityEvent
+import org.babyfish.jimmer.sql.event.AssociationEvent;
+import org.babyfish.jimmer.sql.event.EntityEvent;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 
 /**
  * The property-level cache invalidation configuration.
@@ -33,9 +35,17 @@ import org.babyfish.jimmer.sql.event.EntityEvent
  * Please only override the methods of this interface when the fields that filter care about are
  * not in the table of the associated objects.
  */
-interface PropCacheInvalidator {
 
-    fun getAffectedSourceIds(e: EntityEvent<*>): Collection<*>? = null
+public interface PropCacheInvalidator {
 
-    fun getAffectedSourceIds(e: AssociationEvent): Collection<*>? = null
+    @Nullable
+    default Collection<?> getAffectedSourceIds(EntityEvent<?> e) {
+        return null;
+    }
+
+    @Nullable
+    default Collection<?> getAffectedSourceIds(AssociationEvent e) {
+        return null;
+    }
+
 }
