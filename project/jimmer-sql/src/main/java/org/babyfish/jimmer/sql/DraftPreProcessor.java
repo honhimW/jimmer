@@ -1,7 +1,7 @@
-package org.babyfish.jimmer.sql
+package org.babyfish.jimmer.sql;
 
-import org.babyfish.jimmer.Draft
-import org.babyfish.jimmer.meta.KeyMatcher
+import org.babyfish.jimmer.Draft;
+import org.babyfish.jimmer.meta.KeyMatcher;
 
 /**
  * Before saving draft, give user a chance to modify it.
@@ -31,9 +31,10 @@ import org.babyfish.jimmer.meta.KeyMatcher
  *
  * @see DraftInterceptor
  */
-interface DraftPreProcessor<D: Draft> {
 
-    fun beforeSave(draft: D)
+public interface DraftPreProcessor<D extends Draft> {
+
+    void beforeSave(D draft);
 
     /**
      * Jimmer will call this method if the id-only
@@ -55,7 +56,9 @@ interface DraftPreProcessor<D: Draft> {
      * The return value of this method must be stable,
      * and different calls must return the same return value.
      */
-    fun ignoreIdOnly(): Boolean = false
+    default boolean ignoreIdOnly() {
+        return false;
+    }
 
     /**
      * Jimmer will call this method if the key-only
@@ -64,18 +67,21 @@ interface DraftPreProcessor<D: Draft> {
      * `setKeyOnlyAsReference` and `setKeyOnlyAsReferenceAll`,
      * the default value is `false`)*.
      * Otherwise, this method is **never** called.
-     *
+     * <p>
      * You can override this method to tell jimmer
      * whether to ignore modifications to drafts
      * of key-only objects, the default value is `false`.
-     *
+     * <p>
      * If multiple DraftPreProcessors act on a key-only
      * object, and any `DraftPreProcessor` intends to
      * ignore the modification operation, the modification
      * operation will be ignored finally.
-     *
+     * <p>
      * The return value of this method must be stable,
      * and different calls must return the same return value.
      */
-    fun ignoreKeyOnly(group: KeyMatcher.Group) = false
+    default boolean ignoreKeyOnly(KeyMatcher.Group group) {
+        return false;
+    }
+
 }
