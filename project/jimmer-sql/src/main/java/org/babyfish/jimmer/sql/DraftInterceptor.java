@@ -1,8 +1,12 @@
-package org.babyfish.jimmer.sql
+package org.babyfish.jimmer.sql;
 
-import org.babyfish.jimmer.Draft
-import org.babyfish.jimmer.meta.KeyMatcher
-import org.babyfish.jimmer.meta.TypedProp
+import org.babyfish.jimmer.Draft;
+import org.babyfish.jimmer.meta.KeyMatcher;
+import org.babyfish.jimmer.meta.TypedProp;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Before saving draft, give user a chance to modify it.
@@ -34,7 +38,8 @@ import org.babyfish.jimmer.meta.TypedProp
  *
  * @see DraftPreProcessor
  */
-interface DraftInterceptor<E: Any, D : Draft> {
+
+public interface DraftInterceptor<E, D extends Draft> {
 
     /**
      * Adjust draft before save
@@ -52,7 +57,9 @@ interface DraftInterceptor<E: Any, D : Draft> {
      *  * non-null for update, with `id`, `key` and other properties
      * returned by [.dependencies]
      */
-    fun beforeSave(draft: D, original: E?) {}
+    default void beforeSave(D draft, @Nullable E original) {
+
+    }
 
     /**
      * In general, developers should override method
@@ -64,9 +71,9 @@ interface DraftInterceptor<E: Any, D : Draft> {
      * can be overridden to avoid the `N+1` query problem
      * to reach better performance.</p>
      */
-    fun beforeSaveAll(items: Collection<Item<E, D>>) {
-        for (item in items) {
-            beforeSave(item.draft, item.original)
+    default void beforeSaveAll(Collection<Item<E, D>> items) {
+        for (Item<E, D> item : items) {
+            beforeSave(item.draft, item.original);
         }
     }
 
@@ -80,8 +87,9 @@ interface DraftInterceptor<E: Any, D : Draft> {
      *
      * @return The properties must be loaded, can return null.
      */
-    fun dependencies(): Collection<TypedProp<E, *>>? {
-        return emptyList()
+    @Nullable
+    default Collection<TypedProp<E, ?>> dependencies() {
+        return Collections.emptyList();
     }
 
     /**
@@ -91,20 +99,22 @@ interface DraftInterceptor<E: Any, D : Draft> {
      * `setIdOnlyAsReference` and `setIdOnlyAsReferenceAll`,
      * the default value is `true`)*.
      * Otherwise, this method is **never** called.
-     *
+     * <p>
      * You can override this method to tell jimmer
      * whether to ignore modifications to drafts
      * of id-only objects, the default value is `false`.
-     *
+     * <p>
      * If multiple DraftInterceptors act on an id-only
      * object, and any `DraftInterceptor` intends to
      * ignore the modification operation, the modification
      * operation will be ignored finally.
-     *
+     * <p>
      * The return value of this method must be stable,
      * and different calls must return the same return value.
      */
-    fun ignoreIdOnly(): Boolean = false
+    default boolean ignoreIdOnly() {
+        return false;
+    }
 
     /**
      * Jimmer will call this method if the key-only
@@ -113,30 +123,46 @@ interface DraftInterceptor<E: Any, D : Draft> {
      * `setKeyOnlyAsReference` and `setKeyOnlyAsReferenceAll`,
      * the default value is `false`)*.
      * Otherwise, this method is **never** called.
-     *
+     * <p>
      * You can override this method to tell jimmer
      * whether to ignore modifications to drafts
      * of key-only objects, the default value is `false`.
-     *
+     * <p>
      * If multiple DraftInterceptors act on an key-only
      * object, and any `DraftInterceptor` intends to
      * ignore the modification operation, the modification
      * operation will be ignored finally.
-     *
+     * <p>
      * The return value of this method must be stable,
      * and different calls must return the same return value.
      */
-    fun ignoreKeyOnly(group: KeyMatcher.Group) = false
-
-    data class Item<E: Any, D: Draft>(
-        val draft: D,
-        val original: E?,
-        val state: State
-    ) {
-        data class State(
-            val keyGroup: KeyMatcher.Group?,
-            val isIdOnly: Boolean,
-            val isKeyOnly: Boolean
-        )
+    default boolean ignoreKeyOnly(KeyMatcher.Group group) {
+        return false;
     }
+
+    class Item<E, D extends Draft> {
+        private final D draft;
+        @Nullable
+        private final E original;
+        private final State state;
+
+        public Item(D draft, @Nullable E original, State state) {
+            this.draft = draft;
+            this.original = original;
+            this.state = state;
+        }
+
+        public static class State {
+            private final KeyMatcher.Group keyGroup;
+            private final boolean isIdOnly;
+            private final boolean isKeyOnly;
+
+            public State(KeyMatcher.Group keyGroup, boolean isIdOnly, boolean isKeyOnly) {
+                this.keyGroup = keyGroup;
+                this.isIdOnly = isIdOnly;
+                this.isKeyOnly = isKeyOnly;
+            }
+        }
+    }
+
 }
