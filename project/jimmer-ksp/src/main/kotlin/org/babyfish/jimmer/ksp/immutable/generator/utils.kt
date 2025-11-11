@@ -3,7 +3,7 @@ package org.babyfish.jimmer.ksp.immutable.generator
 import com.google.devtools.ksp.symbol.*
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ksp.toAnnotationSpec
-import org.babyfish.jimmer.currentVersion
+import org.babyfish.jimmer.JimmerVersion.currentVersion
 import org.babyfish.jimmer.ksp.*
 import org.babyfish.jimmer.ksp.immutable.meta.ImmutableProp
 import org.babyfish.jimmer.ksp.immutable.meta.ImmutableType

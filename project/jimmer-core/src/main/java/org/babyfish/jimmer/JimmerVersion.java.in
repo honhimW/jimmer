@@ -1,0 +1,73 @@
+package org.babyfish.jimmer;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Objects;
+import java.util.regex.Pattern;
+
+public class JimmerVersion {
+
+    public static final int major = @major@;
+
+    public static final int minor = @minor@;
+
+    public static final int patch = @patch@;
+
+    private static final String VERSION = "@major@.@minor@.@patch@";
+
+    private static final String RESOURCE = "/META-INF/jimmer/code_generation";
+
+    private static final Pattern PATTERN = Pattern.compile("\\d+\\.\\d+\\.\\d+");
+
+    private static final String GENERATION_VERSION;
+
+    public static String asString() {
+        return VERSION;
+    }
+
+    public static String currentVersion() {
+        return asString();
+    }
+
+    public static String generationVersion() {
+        return GENERATION_VERSION;
+    }
+
+    public static boolean isCurrentVersion(String version) {
+        return currentVersion().equals(version);
+    }
+
+    public static int compareVersion(String a, String b) {
+        if (Objects.equals(a, b)) {
+            return 0;
+        }
+        String[] arr1 = a.split("\\.");
+        String[] arr2 = b.split("\\.");
+        int cmp = 0;
+        for (int i = 0; i < 3; i++) {
+            cmp = Integer.parseInt(arr1[i]) - Integer.parseInt(arr2[i]);
+            if (cmp != 0) {
+                return cmp;
+            }
+        }
+        return cmp;
+    }
+
+    static {
+        try (InputStream stream = JimmerVersion.class.getResourceAsStream(RESOURCE);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+            String line = reader.readLine().trim();
+            if (!PATTERN.matcher(line).matches()) {
+                throw new IllegalArgumentException(String.format("Illegal version text \"%s\" from the resource \"%s\"", line, RESOURCE));
+            }
+            GENERATION_VERSION = line;
+        } catch (IOException e) {
+            throw new IllegalStateException(String.format("There is no resource file \"%s\"", RESOURCE));
+        }
+    }
+
+    private JimmerVersion() {
+    }
+}

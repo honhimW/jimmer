@@ -558,7 +558,7 @@ class ChildTableOperator extends AbstractAssociationOperator {
             if (!retainedIdPairs.tuples().isEmpty()) {
                 query.where(
                         table.getId().notIn(
-                            TupleImplementor.projection(retainedIdPairs.entries(), 1)
+                            TupleImplementor.projection(retainedIdPairs.tuples(), 1)
                         )
                 );
             }
